@@ -39,8 +39,20 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(',') ?? [
+  'http://localhost:3001',
+  'http://localhost:3000',
+];
+// Always allow Vercel preview + production domains
+const VERCEL_ORIGIN = /https:\/\/.*\.vercel\.app$/;
+
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3001'],
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);                         // same-origin / server-to-server
+    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    if (VERCEL_ORIGIN.test(origin)) return cb(null, true);
+    cb(new Error(`CORS: origin ${origin} not allowed`));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id'],
