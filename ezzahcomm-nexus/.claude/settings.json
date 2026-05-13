@@ -1,0 +1,15 @@
+{
+  "projectName": "EZZAHCOMM NEXUS",
+  "defaultRuntime": "node",
+  "preferredPackageManager": "npm",
+  "autoApproveSafeCommands": true,
+  "codeStyle": {
+    "quotes": "single",
+    "semicolons": true,
+    "typescript": false
+  },
+  "deployment": {
+    "target": "cpanel",
+    "processManager": "pm2"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  },
+  "files.autoSave": "afterDelay",
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "workbench.startupEditor": "none",
+  "editor.minimap.enabled": false,
+  "git.enableSmartCommit": true,
+  "explorer.confirmDelete": false,
+  "editor.inlineSuggest.enabled": true,
+  "chat.commandCenter.enabled": true,
+  "github.copilot.enable": {
+    "*": true
+  },
+  "typescript.tsserver.maxTsServerMemory": 4096,
+  "npm.packageManager": "npm"
+}

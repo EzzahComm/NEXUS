@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "Anthropic.claude-code",
+    "GitHub.copilot",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "ms-vscode.vscode-json",
+    "ms-azuretools.vscode-docker",
+    "ms-vscode-remote.remote-ssh",
+    "bradlc.vscode-tailwindcss",
+    "ms-python.python",
+    "eamodio.gitlens",
+    "rangav.vscode-thunder-client"
+  ]
+}

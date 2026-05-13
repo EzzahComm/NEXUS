@@ -1,0 +1,222 @@
+version: '3.9'
+
+# ============================================================
+# EZZAHCOMM NEXUS — DOCKER COMPOSE RUNTIME
+# Multi-Agent Orchestration Platform
+# ============================================================
+
+networks:
+  nexus-net:
+    driver: bridge
+
+volumes:
+  nexus-redis-data:
+  nexus-logs:
+
+services:
+
+  # ── CORE ORCHESTRATOR ──────────────────────────────────────
+  nexus-core:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+    container_name: nexus-core
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SERVICE=nexus-core
+      - NODE_ENV=production
+    volumes:
+      - nexus-logs:/app/logs
+    networks:
+      - nexus-net
+    depends_on:
+      - nexus-redis
+    ports:
+      - "3000:3000"
+
+  # ── TASK ORCHESTRATOR ──────────────────────────────────────
+  nexus-orchestrator:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+    container_name: nexus-orchestrator
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SERVICE=orchestrator
+    networks:
+      - nexus-net
+    depends_on:
+      - nexus-redis
+      - nexus-core
+
+  # ── MEMORY ENGINE ─────────────────────────────────────────
+  nexus-memory:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+    container_name: nexus-memory
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SERVICE=memory
+    networks:
+      - nexus-net
+
+  # ── WORKER (async task processor) ─────────────────────────
+  nexus-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+    container_name: nexus-worker
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SERVICE=worker
+    networks:
+      - nexus-net
+    depends_on:
+      - nexus-redis
+
+  # ── REST API ──────────────────────────────────────────────
+  nexus-api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+    container_name: nexus-api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SERVICE=api
+    ports:
+      - "4000:4000"
+    networks:
+      - nexus-net
+
+  # ── DASHBOARD (Next.js) ───────────────────────────────────
+  nexus-dashboard:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nexus-dashboard
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "3001:3001"
+    networks:
+      - nexus-net
+
+  # ── MARKETPLACE ───────────────────────────────────────────
+  nexus-marketplace:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+    container_name: nexus-marketplace
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SERVICE=marketplace
+    ports:
+      - "3002:3002"
+    networks:
+      - nexus-net
+
+  # ── BILLING ENGINE ────────────────────────────────────────
+  nexus-billing:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+    container_name: nexus-billing
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SERVICE=billing
+    ports:
+      - "4001:4001"
+    networks:
+      - nexus-net
+
+  # ── MARKETING ENGINE ──────────────────────────────────────
+  nexus-marketing:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+    container_name: nexus-marketing
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SERVICE=marketing
+    networks:
+      - nexus-net
+
+  # ── SMS ENGINE ────────────────────────────────────────────
+  nexus-sms:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+    container_name: nexus-sms
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SERVICE=sms
+      - SMS_PROVIDER=ezzahcomm-sms
+    networks:
+      - nexus-net
+
+  # ── ANALYTICS ENGINE ──────────────────────────────────────
+  nexus-analytics:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+    container_name: nexus-analytics
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SERVICE=analytics
+    ports:
+      - "4002:4002"
+    networks:
+      - nexus-net
+
+  # ── DEPLOYMENT ENGINE ─────────────────────────────────────
+  nexus-deployment:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+    container_name: nexus-deployment
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - SERVICE=deployment
+    networks:
+      - nexus-net
+
+  # ── REDIS (task queue + caching) ──────────────────────────
+  nexus-redis:
+    image: redis:7-alpine
+    container_name: nexus-redis
+    restart: unless-stopped
+    volumes:
+      - nexus-redis-data:/data
+    networks:
+      - nexus-net
+    command: redis-server --appendonly yes
+
+  # ── NGINX REVERSE PROXY ───────────────────────────────────
+  nexus-nginx:
+    image: nginx:alpine
+    container_name: nexus-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/ssl:/etc/nginx/ssl:ro
+    networks:
+      - nexus-net
+    depends_on:
+      - nexus-core
+      - nexus-api
+      - nexus-dashboard

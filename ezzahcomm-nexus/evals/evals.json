@@ -1,0 +1,35 @@
+{
+  "skill_name": "ezzahcomm-nexus",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Build a Supabase backend for a CRM system with authentication, multi-tenant support, and lead tracking",
+      "expected_output": "Full schema design with RLS, auth flow, and tables for leads, users, and organizations",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Deploy a Node.js + Express API to a VPS with NGINX and PM2",
+      "expected_output": "Deployment steps including server setup, process manager config, and reverse proxy configuration",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Design an AI-powered marketing automation system for WhatsApp, SMS, and email campaigns",
+      "expected_output": "Architecture showing automation flows, triggers, CRM integration, and messaging systems",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Fix a broken authentication system using JWT in a Node.js backend",
+      "expected_output": "Debugging steps, corrected auth flow, and security improvements",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Create a full social media content automation system for Facebook, Instagram, and TikTok",
+      "expected_output": "System design for content generation, scheduling, and analytics tracking",
+      "files": []
+    }
+  ]
+}
