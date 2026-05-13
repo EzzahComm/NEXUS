@@ -8,10 +8,10 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { supabase } from '../server';
-import { NexusOrchestrator } from '../../runtime/orchestrator';
+import { getOrchestrator } from '../../runtime/orchestrator';
 
 export const agentsRouter = Router();
-const orchestrator = new NexusOrchestrator();
+const orchestrator = getOrchestrator();
 
 const DispatchSchema = z.object({
   type: z.enum([

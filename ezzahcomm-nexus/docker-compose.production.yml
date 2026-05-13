@@ -1,0 +1,209 @@
+# ============================================================
+# EZZAHCOMM NEXUS — PRODUCTION DOCKER COMPOSE
+# Services: api, orchestrator, worker, dashboard, redis, nginx
+# Stub services (marketplace, billing, etc.) are handled by
+# the orchestrator — they are NOT separate containers.
+# ============================================================
+
+version: '3.9'
+
+networks:
+  nexus-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+volumes:
+  nexus-redis-data:
+    driver: local
+  nexus-logs:
+    driver: local
+  nexus-ssl:
+    driver: local
+
+x-common: &common
+  restart: unless-stopped
+  env_file: .env
+  networks:
+    - nexus-net
+  logging:
+    driver: json-file
+    options:
+      max-size: "50m"
+      max-file: "5"
+
+services:
+
+  # ── REDIS (task queue + cache) ────────────────────────────
+  nexus-redis:
+    <<: *common
+    image: redis:7-alpine
+    container_name: nexus-redis
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD:-}
+      --bind 0.0.0.0
+      --protected-mode no
+    volumes:
+      - nexus-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+        reservations:
+          memory: 100M
+
+  # ── REST API (Express, cluster via PM2) ───────────────────
+  nexus-api:
+    <<: *common
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+      target: production
+    container_name: nexus-api
+    environment:
+      SERVICE: api
+      NODE_ENV: production
+      PORT: "4000"
+    ports:
+      - "127.0.0.1:4000:4000"
+    volumes:
+      - nexus-logs:/app/logs
+    depends_on:
+      nexus-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # ── ORCHESTRATOR (singleton, fork mode) ───────────────────
+  nexus-orchestrator:
+    <<: *common
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+      target: production
+    container_name: nexus-orchestrator
+    environment:
+      SERVICE: orchestrator
+      NODE_ENV: production
+    volumes:
+      - nexus-logs:/app/logs
+    depends_on:
+      nexus-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+    deploy:
+      resources:
+        limits:
+          memory: 600M
+        reservations:
+          memory: 384M
+
+  # ── WORKER (BullMQ processor, 2 replicas) ─────────────────
+  nexus-worker:
+    <<: *common
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+      target: production
+    container_name: nexus-worker
+    environment:
+      SERVICE: worker
+      NODE_ENV: production
+      WORKER_CONCURRENCY: "5"
+    volumes:
+      - nexus-logs:/app/logs
+    depends_on:
+      nexus-redis:
+        condition: service_healthy
+      nexus-orchestrator:
+        condition: service_healthy
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 450M
+        reservations:
+          memory: 256M
+
+  # ── DASHBOARD (Next.js SSR) ───────────────────────────────
+  nexus-dashboard:
+    <<: *common
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nexus-dashboard
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.ezzahcomm.co.ke}
+    ports:
+      - "127.0.0.1:3001:3001"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # ── NGINX (reverse proxy + SSL) ───────────────────────────
+  nexus-nginx:
+    <<: *common
+    image: nginx:1.27-alpine
+    container_name: nexus-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.production.conf:/etc/nginx/nginx.conf:ro
+      - nexus-ssl:/etc/nginx/ssl:ro
+      - nexus-logs:/var/log/nginx
+    depends_on:
+      nexus-api:
+        condition: service_healthy
+      nexus-dashboard:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+        reservations:
+          memory: 50M

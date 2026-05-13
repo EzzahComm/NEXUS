@@ -12,7 +12,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://api.ezzahcomm.com/api/:path*"
+      "destination": "https://api.ezzahcomm.co.ke/api/:path*"
     }
   ],
 

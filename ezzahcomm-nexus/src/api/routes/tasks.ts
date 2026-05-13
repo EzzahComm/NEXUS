@@ -47,9 +47,11 @@ tasksRouter.get('/:id', async (req, res) => {
 
 // PATCH /api/tasks/:id
 tasksRouter.patch('/:id', async (req, res) => {
-  const { status } = z.object({
-    status: z.enum(['cancelled']),
-  }).parse(req.body);
+  const parsed = z.object({ status: z.enum(['cancelled']) }).safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'Validation failed', details: parsed.error.flatten() });
+  }
+  const { status } = parsed.data;
 
   const { data, error } = await supabase
     .from('tasks')

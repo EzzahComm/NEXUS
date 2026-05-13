@@ -58,6 +58,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id'],
 }));
 
+// Capture raw body for webhook HMAC validation before JSON parsing
+app.use('/api/webhooks', express.raw({ type: 'application/json', limit: '2mb' }));
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(pinoHttp({ logger }));

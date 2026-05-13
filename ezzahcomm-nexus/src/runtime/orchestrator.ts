@@ -197,8 +197,14 @@ export class NexusOrchestrator {
 
 // ── ENTRY POINT ───────────────────────────────────────────
 
+let _instance: NexusOrchestrator | null = null;
+export function getOrchestrator(): NexusOrchestrator {
+  if (!_instance) _instance = new NexusOrchestrator();
+  return _instance;
+}
+
 if (require.main === module) {
-  const nexus = new NexusOrchestrator();
+  const nexus = getOrchestrator();
   nexus.boot().catch((err) => {
     logger.error(err, 'Fatal: NEXUS failed to boot');
     process.exit(1);

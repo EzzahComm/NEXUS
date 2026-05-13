@@ -13,7 +13,7 @@ const logger = pino({ name: 'nexus:paystack' });
 
 export interface PaystackInitRequest {
   email: string;
-  amount: number;           // in kobo (multiply by 100)
+  amount: number;           // in KES — converted to kobo internally
   currency?: 'NGN' | 'GHS' | 'KES' | 'ZAR';
   reference?: string;
   callback_url?: string;
@@ -173,6 +173,14 @@ export class PaystackService {
 
     logger.info({ eventType }, 'Processing Paystack webhook');
 
+    // Audit trail — log every received event
+    await this.supabase.from('webhook_events').insert({
+      provider: 'paystack',
+      event_type: eventType,
+      payload: event,
+      received_at: new Date().toISOString(),
+    });
+
     switch (eventType) {
       case 'charge.success':
         await this.supabase
@@ -181,14 +189,18 @@ export class PaystackService {
           .eq('reference', txData.reference);
         break;
 
-      case 'subscription.create':
+      case 'subscription.create': {
+        const customerEmail = (txData.customer as Record<string, unknown>)?.email as string;
+        const tenantId = await this.lookupTenantByEmail(customerEmail);
         await this.supabase.from('subscriptions').insert({
           paystack_subscription_code: txData.subscription_code,
           status: 'active',
-          customer_email: (txData.customer as Record<string, unknown>)?.email,
+          customer_email: customerEmail,
           plan_code: (txData.plan as Record<string, unknown>)?.plan_code,
+          tenant_id: tenantId,
         });
         break;
+      }
 
       case 'subscription.disable':
         await this.supabase
@@ -200,5 +212,19 @@ export class PaystackService {
       default:
         logger.info({ eventType }, 'Unhandled Paystack webhook event');
     }
+  }
+
+  // ── TENANT LOOKUP ─────────────────────────────────────────
+
+  private async lookupTenantByEmail(email: string): Promise<string | null> {
+    const { data } = await this.supabase
+      .from('card_transactions')
+      .select('tenant_id')
+      .eq('email', email)
+      .not('tenant_id', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+    return data?.tenant_id ?? null;
   }
 }

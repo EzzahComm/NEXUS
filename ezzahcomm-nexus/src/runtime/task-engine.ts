@@ -76,12 +76,18 @@ export class TaskEngine {
       instructions: 'Analyze and respond with: { analysis, action_taken, recommendations, next_steps }',
     });
 
-    const response = await this.claude.messages.create({
-      model: process.env.CLAUDE_MODEL || 'claude-opus-4-6',
-      max_tokens: 4096,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userMessage }],
-    });
+    const TIMEOUT_MS = 60_000;
+    const response = await Promise.race([
+      this.claude.messages.create({
+        model: process.env.CLAUDE_MODEL || 'claude-opus-4-6',
+        max_tokens: 4096,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMessage }],
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Claude API timeout after 60s')), TIMEOUT_MS)
+      ),
+    ]);
 
     const content = response.content[0];
     if (content.type !== 'text') throw new Error('Unexpected response type from Claude');
@@ -128,9 +134,15 @@ export class TaskEngine {
 
     logger.info({ count: tasks.length }, 'Re-queuing pending tasks');
 
+    const PRIORITY_MAP: Record<string, number> = { critical: 1, high: 2, medium: 3, low: 4 };
+
     for (const task of tasks) {
       await this.queue.add(task.task_type, task, {
-        priority: task.priority === 'critical' ? 1 : 2,
+        priority: PRIORITY_MAP[task.priority] ?? 3,
+        attempts: 5,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: { age: 7 * 24 * 3600 },
+        removeOnFail: { age: 30 * 24 * 3600 },
       });
     }
   }

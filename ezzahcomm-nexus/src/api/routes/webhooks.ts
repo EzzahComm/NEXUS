@@ -13,6 +13,24 @@ import pino from 'pino';
 export const webhooksRouter = Router();
 const logger = pino({ name: 'nexus:webhooks' });
 
+// Safaricom's published callback IP range
+const DARAJA_ALLOWED_IPS = new Set([
+  '196.201.214.200', '196.201.214.206', '196.201.213.114',
+  '196.201.214.207', '196.201.214.208', '196.201.213.100',
+  '196.201.214.209', '196.201.214.210',
+]);
+
+function darajaIpGuard(req: Request, res: Response, next: () => void): void {
+  if (process.env.NODE_ENV !== 'production') return next();
+  const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() ?? req.ip ?? '';
+  if (!DARAJA_ALLOWED_IPS.has(clientIp)) {
+    logger.warn({ clientIp }, 'Daraja callback from unlisted IP — rejected');
+    res.status(403).json({ error: 'Forbidden' });
+    return;
+  }
+  next();
+}
+
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -22,7 +40,7 @@ const daraja = new DarajaService(supabase);
 const paystack = new PaystackService(supabase);
 
 // POST /api/webhooks/daraja
-webhooksRouter.post('/daraja', async (req: Request, res: Response) => {
+webhooksRouter.post('/daraja', darajaIpGuard, async (req: Request, res: Response) => {
   try {
     await daraja.processCallback(req.body);
     res.status(200).json({ ResultCode: 0, ResultDesc: 'Accepted' });
@@ -35,7 +53,8 @@ webhooksRouter.post('/daraja', async (req: Request, res: Response) => {
 // POST /api/webhooks/paystack
 webhooksRouter.post('/paystack', async (req: Request, res: Response) => {
   const signature = req.headers['x-paystack-signature'] as string;
-  const rawBody = JSON.stringify(req.body);
+  // req.body is a Buffer here because server mounts express.raw() for /api/webhooks
+  const rawBody = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body);
 
   if (!paystack.validateWebhook(rawBody, signature)) {
     logger.warn('Invalid Paystack webhook signature');
@@ -43,7 +62,8 @@ webhooksRouter.post('/paystack', async (req: Request, res: Response) => {
   }
 
   try {
-    await paystack.processWebhook(req.body);
+    const payload = Buffer.isBuffer(req.body) ? JSON.parse(req.body.toString('utf8')) : req.body;
+    await paystack.processWebhook(payload);
     return res.status(200).json({ received: true });
   } catch (err) {
     logger.error({ err }, 'Paystack webhook error');
