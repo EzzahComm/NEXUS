@@ -1,0 +1,145 @@
+name: NEXUS — Build, Test & Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ── BUILD & TYPE-CHECK ──────────────────────────────────────
+  build:
+    name: Build & Type-Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus-dist
+          path: dist/
+          retention-days: 1
+
+  # ── SECURITY AUDIT ──────────────────────────────────────────
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Check for secrets in code
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+        continue-on-error: true
+
+  # ── DEPLOY TO VPS ───────────────────────────────────────────
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    needs: [build, security]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    environment:
+      name: production
+      url: ${{ secrets.APP_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nexus-dist
+          path: dist/
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            set -e
+            cd /var/www/nexus
+
+            echo "── Pulling latest code ──"
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "── Installing dependencies ──"
+            npm ci --omit=dev
+
+            echo "── Building ──"
+            npm run build
+
+            echo "── Reloading PM2 ──"
+            pm2 reload ecosystem.config.js --env production --update-env
+
+            echo "── Saving PM2 state ──"
+            pm2 save
+
+            echo "── Health check ──"
+            sleep 5
+            curl -sf http://localhost:4000/health | grep -q '"status":"healthy"' \
+              && echo "✅ Deployment healthy" \
+              || (echo "❌ Health check failed" && pm2 logs nexus-api --lines 20 && exit 1)
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "✅ NEXUS deployed successfully to production"
+          echo "Commit: ${{ github.sha }}"
+          echo "By: ${{ github.actor }}"
+
+      - name: Notify deployment failure
+        if: failure()
+        run: |
+          echo "❌ NEXUS deployment FAILED"
+          echo "Commit: ${{ github.sha }}"
+          echo "Check logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"

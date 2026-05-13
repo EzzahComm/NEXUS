@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS agents (
   type TEXT NOT NULL CHECK (type IN (
     'architect', 'backend', 'frontend', 'deployment',
     'security', 'marketing', 'analytics', 'memory',
-    'automation', 'billing', 'communication', 'audit'
+    'automation', 'billing', 'communication', 'audit', 'support'
   )),
   capabilities JSONB DEFAULT '[]',
   system_prompt TEXT,

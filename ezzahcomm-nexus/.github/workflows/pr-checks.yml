@@ -1,0 +1,59 @@
+name: NEXUS — PR Checks
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Type-Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: Check for TODO/FIXME in critical paths
+        run: |
+          if grep -r "TODO\|FIXME\|HACK" src/api/routes/ src/runtime/ --include="*.ts" -l; then
+            echo "⚠️  Found TODO/FIXME markers in critical paths — review before merging"
+          fi
+        continue-on-error: true
+
+  env-validation:
+    name: Validate .env.example
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check .env.example is not missing keys
+        run: |
+          required_keys=(
+            "SUPABASE_URL"
+            "SUPABASE_SERVICE_ROLE_KEY"
+            "ANTHROPIC_API_KEY"
+            "JWT_SECRET"
+            "DARAJA_CONSUMER_KEY"
+            "PAYSTACK_SECRET_KEY"
+            "TEXTSMS_API_KEY"
+            "REDIS_URL"
+          )
+          missing=0
+          for key in "${required_keys[@]}"; do
+            if ! grep -q "^${key}=" .env.example; then
+              echo "Missing key in .env.example: $key"
+              missing=1
+            fi
+          done
+          [ $missing -eq 0 ] && echo "✅ All required env keys present"
+          exit $missing

@@ -1,0 +1,55 @@
+# ============================================================
+# EZZAHCOMM NEXUS — Core Service Dockerfile
+# Multi-stage: build TypeScript → lean production image
+# ============================================================
+
+# ── STAGE 1: BUILD ────────────────────────────────────────────
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install deps first (layer caching)
+COPY package*.json ./
+RUN npm ci
+
+# Copy source and compile
+COPY tsconfig.json ./
+COPY src/ ./src/
+RUN npm run build
+
+# Prune dev dependencies
+RUN npm ci --omit=dev
+
+# ── STAGE 2: PRODUCTION ───────────────────────────────────────
+FROM node:20-alpine AS production
+
+# Security: non-root user
+RUN addgroup -g 1001 -S nexus && adduser -u 1001 -S nexus -G nexus
+
+WORKDIR /app
+
+# Copy built output + prod node_modules
+COPY --from=builder --chown=nexus:nexus /app/dist ./dist
+COPY --from=builder --chown=nexus:nexus /app/node_modules ./node_modules
+COPY --from=builder --chown=nexus:nexus /app/package.json ./
+
+# Create logs directory
+RUN mkdir -p /app/logs && chown nexus:nexus /app/logs
+
+USER nexus
+
+# Select which service entrypoint to run via SERVICE env var
+ENV NODE_ENV=production
+ENV SERVICE=orchestrator
+
+EXPOSE 3000 4000
+
+# Entrypoint: routes to correct compiled entry based on SERVICE
+CMD sh -c " \
+  case $SERVICE in \
+    api)          node dist/api/server.js ;; \
+    orchestrator) node dist/runtime/orchestrator.js ;; \
+    worker)       node dist/runtime/task-engine.js ;; \
+    memory)       node dist/runtime/memory-engine.js ;; \
+    *)            node dist/runtime/orchestrator.js ;; \
+  esac"

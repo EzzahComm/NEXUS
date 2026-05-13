@@ -39,7 +39,8 @@ export type AgentType =
   | 'automation'
   | 'billing'
   | 'communication'
-  | 'audit';
+  | 'audit'
+  | 'support';
 
 export class NexusOrchestrator {
   private supabase;
