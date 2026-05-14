@@ -3,8 +3,10 @@ const path = require('path');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // ── OUTPUT ────────────────────────────────────────────────
-  output: 'standalone',   // required for Docker; Vercel ignores this safely
-  outputFileTracingRoot: path.join(__dirname, '../'),
+  ...(process.env.DOCKER_BUILD === 'true' && {
+    output: 'standalone',
+    outputFileTracingRoot: path.join(__dirname, '../'),
+  }),
 
   // ── API PROXY (local dev — Vercel uses vercel.json rewrites) ──
   async rewrites() {
