@@ -9,3 +9,6 @@ build/
 .DS_Store
 Thumbs.db
 lib/generated/
+
+.vercel
+.env*.local
