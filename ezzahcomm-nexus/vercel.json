@@ -4,7 +4,6 @@
   "outputDirectory": ".next",
   "installCommand": "npm ci",
   "framework": "nextjs",
-  "rootDirectory": "frontend",
 
   "rewrites": [
     {
