@@ -8,3 +8,6 @@ build/
 *.log
 .DS_Store
 lib/generated/
+
+.vercel
+.env*.local
