@@ -1,8 +1,5 @@
 {
   "version": 2,
-  "name": "nexus-dashboard",
-  "comment": "Deploys the Next.js frontend only. API and runtime stay on VPS.",
-
   "buildCommand": "cd frontend && npm ci && npm run build",
   "outputDirectory": "frontend/.next",
   "installCommand": "cd frontend && npm ci",
