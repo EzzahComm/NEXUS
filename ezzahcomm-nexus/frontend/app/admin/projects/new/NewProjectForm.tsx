@@ -66,12 +66,62 @@ const AGENT_TEMPLATES = [
       { type: 'monthly_summary',  title: 'Generate monthly financial summary' },
     ],
   },
-];
+  {
+    type: 'web_development', name: 'Web Development', icon: '🌐',
+    capabilities: [],   // resolved per specialization at submit time
+    tasks: [],          // resolved per specialization
+    specializations: {
+      fullstack: {
+        label: 'Full-Stack',
+        capabilities: ['react', 'next.js', 'node.js', 'postgresql', 'deployment'],
+        tasks: [
+          { type: 'build_app',      title: 'Build complete web application' },
+          { type: 'design_schema',  title: 'Design database schema & API layer' },
+          { type: 'implement_auth', title: 'Implement auth & access control' },
+          { type: 'deploy_app',     title: 'Deploy & configure hosting' },
+        ],
+      },
+      frontend: {
+        label: 'Frontend',
+        capabilities: ['react', 'next.js', 'tailwind', 'typescript', 'testing'],
+        tasks: [
+          { type: 'build_ui',        title: 'Build responsive UI components' },
+          { type: 'state_mgmt',      title: 'Implement state management' },
+          { type: 'perf_optimise',   title: 'Optimise performance & Core Web Vitals' },
+          { type: 'api_integration', title: 'Integrate APIs & handle data fetching' },
+        ],
+      },
+      backend: {
+        label: 'Backend',
+        capabilities: ['node.js', 'rest_api', 'graphql', 'postgresql', 'redis'],
+        tasks: [
+          { type: 'build_api',     title: 'Design & build REST/GraphQL API' },
+          { type: 'setup_db',      title: 'Set up database, ORM & migrations' },
+          { type: 'auth_caching',  title: 'Implement auth, caching & queuing' },
+          { type: 'api_docs',      title: 'Write tests & API documentation' },
+        ],
+      },
+      integrations: {
+        label: 'Integrations',
+        capabilities: ['webhooks', 'api_connectors', 'data_sync', 'payments', 'crm'],
+        tasks: [
+          { type: 'third_party_apis', title: 'Connect third-party APIs & webhooks' },
+          { type: 'data_pipeline',    title: 'Build data sync pipelines' },
+          { type: 'payment_gateway',  title: 'Set up payment gateway integration' },
+          { type: 'crm_connectors',   title: 'Configure CRM/ERP connectors' },
+        ],
+      },
+    } as const,
+  },
+] as const;
+
+type Specialization = 'fullstack' | 'frontend' | 'backend' | 'integrations';
 
 type AgentConfig = {
   selectedTasks: Set<string>;
   instructions: string;
   priority: 'critical' | 'high' | 'medium' | 'low';
+  specialization?: Specialization;
 };
 
 export default function NewProjectForm({ users }: { users: User[] }) {
@@ -127,6 +177,13 @@ export default function NewProjectForm({ users }: { users: User[] }) {
     }));
   }
 
+  function setSpecialization(agentType: string, spec: Specialization) {
+    setAgentConfig(prev => ({
+      ...prev,
+      [agentType]: { ...(prev[agentType] ?? { instructions: '', priority: 'medium' as const }), specialization: spec, selectedTasks: new Set() },
+    }));
+  }
+
   function setPriority(agentType: string, val: 'critical' | 'high' | 'medium' | 'low') {
     setAgentConfig(prev => ({
       ...prev,
@@ -148,7 +205,9 @@ export default function NewProjectForm({ users }: { users: User[] }) {
     if (!selectedUser) return false;
     if (selectedAgents.size === 0) return false;
     for (const type of selectedAgents) {
-      if (!agentConfig[type]?.selectedTasks.size) return false;
+      const cfg = agentConfig[type];
+      if (!cfg?.selectedTasks.size) return false;
+      if (type === 'web_development' && !cfg.specialization) return false;
     }
     return true;
   }
@@ -165,14 +224,21 @@ export default function NewProjectForm({ users }: { users: User[] }) {
     const agentPayload = AGENT_TEMPLATES
       .filter(t => selectedAgents.has(t.type))
       .map(t => {
-        const cfg = agentConfig[t.type];
-        const tasks = t.tasks
+        const cfg  = agentConfig[t.type];
+        const spec = (t.type === 'web_development' && cfg?.specialization)
+          ? (t as { specializations: Record<string, { label: string; capabilities: readonly string[]; tasks: readonly { type: string; title: string }[] }> }).specializations[cfg.specialization]
+          : null;
+        const resolvedTasks  = spec ? [...spec.tasks]  : [...t.tasks];
+        const resolvedCaps   = spec ? [...spec.capabilities] : [...t.capabilities];
+        const resolvedType   = spec ? `web_dev_${cfg!.specialization!}` : t.type;
+        const resolvedName   = spec ? `${spec.label} Dev Agent` : `${t.name} Agent`;
+        const tasks = resolvedTasks
           .filter(task => cfg?.selectedTasks.has(task.type))
           .map(task => ({ ...task, priority: cfg?.priority ?? 'medium' }));
         return {
-          name:         t.name + ' Agent',
-          type:         t.type,
-          capabilities: t.capabilities,
+          name:         resolvedName,
+          type:         resolvedType,
+          capabilities: resolvedCaps,
           tasks,
           instructions: cfg?.instructions ?? '',
         };
@@ -336,6 +402,12 @@ export default function NewProjectForm({ users }: { users: User[] }) {
             {AGENT_TEMPLATES.map(t => {
               const active = selectedAgents.has(t.type);
               const cfg    = agentConfig[t.type];
+              const isWebDev = t.type === 'web_development';
+              const specs    = isWebDev ? (t as { specializations: Record<string, { label: string; capabilities: readonly string[]; tasks: readonly { type: string; title: string }[] }> }).specializations : null;
+              const activeSpec = isWebDev && cfg?.specialization ? specs![cfg.specialization] : null;
+              const visibleCaps  = activeSpec ? [...activeSpec.capabilities]  : [...t.capabilities];
+              const visibleTasks = activeSpec ? [...activeSpec.tasks] : [...t.tasks];
+
               return (
                 <div key={t.type}
                   className={`rounded-xl border transition-all ${active ? 'border-red-500/30' : 'border-white/8'}`}>
@@ -349,9 +421,12 @@ export default function NewProjectForm({ users }: { users: User[] }) {
                     <div className="flex-1 min-w-0">
                       <p className="text-white text-sm font-medium">{t.name}</p>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {t.capabilities.map(c => (
-                          <span key={c} className="text-[10px] text-white/25 bg-white/5 px-1.5 py-0.5 rounded">{c}</span>
-                        ))}
+                        {isWebDev && !activeSpec
+                          ? <span className="text-[10px] text-[#0066ff]/60 bg-[#0066ff]/8 px-1.5 py-0.5 rounded">full-stack · frontend · backend · integrations</span>
+                          : visibleCaps.map(c => (
+                              <span key={c} className="text-[10px] text-white/25 bg-white/5 px-1.5 py-0.5 rounded">{c}</span>
+                            ))
+                        }
                       </div>
                     </div>
                     <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
@@ -366,11 +441,35 @@ export default function NewProjectForm({ users }: { users: User[] }) {
                   {/* Expanded config */}
                   {active && (
                     <div className="px-4 pb-4 flex flex-col gap-3 border-t border-red-500/10 pt-3">
-                      {/* Tasks */}
+
+                      {/* Web dev specialization picker */}
+                      {isWebDev && specs && (
+                        <div>
+                          <p className="text-[10px] text-white/30 uppercase tracking-wider mb-2">Specialization *</p>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {(Object.entries(specs) as [Specialization, { label: string }][]).map(([key, s]) => {
+                              const sel = cfg?.specialization === key;
+                              return (
+                                <button key={key} type="button"
+                                  onClick={() => setSpecialization(t.type, key)}
+                                  className={`py-2 px-3 rounded-lg text-xs font-medium text-left flex items-center gap-2 transition-colors ${
+                                    sel ? 'bg-[#0066ff]/15 border border-[#0066ff]/30 text-[#4d94ff]' : 'bg-white/5 border border-white/8 text-white/40 hover:text-white/70 hover:bg-white/8'
+                                  }`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sel ? 'bg-[#4d94ff]' : 'bg-white/20'}`} />
+                                  {s.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Tasks — shown for non-webdev always; for webdev only after spec chosen */}
+                      {(!isWebDev || activeSpec) && (
                       <div>
                         <p className="text-[10px] text-white/30 uppercase tracking-wider mb-2">Select tasks</p>
                         <div className="flex flex-col gap-1.5">
-                          {t.tasks.map(task => {
+                          {visibleTasks.map(task => {
                             const checked = cfg?.selectedTasks.has(task.type) ?? false;
                             return (
                               <label key={task.type}
@@ -379,7 +478,7 @@ export default function NewProjectForm({ users }: { users: User[] }) {
                                 }`}>
                                 <input type="checkbox" checked={checked}
                                   onChange={() => toggleTask(t.type, task.type)}
-                                  className="sr-only" />
+                                  className="sr-only" title={task.title} />
                                 <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
                                   checked ? 'border-[#00ff88] bg-[#00ff88]' : 'border-white/20'
                                 }`}>
@@ -393,6 +492,7 @@ export default function NewProjectForm({ users }: { users: User[] }) {
                           })}
                         </div>
                       </div>
+                      )}
 
                       {/* Priority */}
                       <div>
