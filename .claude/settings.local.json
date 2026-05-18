@@ -15,7 +15,8 @@
       "mcp__supabase__list_tables",
       "mcp__supabase__apply_migration",
       "Bash(mkdir \"C:\\\\Users\\\\Poly\\\\Documents\\\\Claude\\\\Projects\\\\CPA OTENE\\\\cpa-otene-website\\\\workflows\" && echo \"created\")",
-      "mcp__claude_ai_Supabase__list_tables"
+      "mcp__claude_ai_Supabase__list_tables",
+      "Bash(vercel ls *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Poly\\Documents\\Claude\\Projects\\CPA OTENE\\cpa-otene-website\\workflows"
