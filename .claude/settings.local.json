@@ -1,6 +1,27 @@
 {
+  "permissions": {
+    "allow": [
+      "mcp__claude_ai_Supabase__execute_sql",
+      "mcp__claude_ai_Supabase__apply_migration",
+      "Bash(ls /c/Users/Poly/Documents/Claude/Projects/NEXUS/ezzahcomm-nexus/frontend/app/ 2>&1)",
+      "Read(//c/Users/Poly/Documents/Claude/Projects/NEXUS/ezzahcomm-nexus/frontend/app//**)",
+      "Bash(find /c/Users/Poly/Documents/Claude/Projects/NEXUS/ezzahcomm-nexus/frontend/components -type f 2>&1 | head -40)",
+      "Read(//c/Users/Poly/Documents/Claude/Projects/NEXUS/ezzahcomm-nexus/frontend/components/**)",
+      "Bash(find \"/c/Users/Poly/Documents/Claude/Projects/CPA OTENE/cpa-otene-website\" -path \"*/components/*\" -type f 2>&1 | grep -v node_modules | sort)",
+      "Read(//c/Users/Poly/Documents/Claude/Projects/CPA OTENE/cpa-otene-website/**)",
+      "Bash(Get-ChildItem -Recurse -Filter \"*.tsx\" \"C:\\\\Users\\\\Poly\\\\Documents\\\\Claude\\\\Projects\\\\CPA OTENE\\\\cpa-otene-website\\\\app\")",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(npx tsc *)",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__apply_migration",
+      "Bash(mkdir \"C:\\\\Users\\\\Poly\\\\Documents\\\\Claude\\\\Projects\\\\CPA OTENE\\\\cpa-otene-website\\\\workflows\" && echo \"created\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\Poly\\Documents\\Claude\\Projects\\CPA OTENE\\cpa-otene-website\\workflows"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "supabase"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }
