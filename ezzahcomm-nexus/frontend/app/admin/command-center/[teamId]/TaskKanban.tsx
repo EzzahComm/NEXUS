@@ -81,7 +81,7 @@ export default function TaskKanban({ tasksByState }: Props) {
                         </span>
                       </div>
 
-                      {task.payload?.instruction && (
+                      {!!task.payload?.instruction && (
                         <p className="text-slate-500 text-xs line-clamp-2 leading-snug">
                           {String(task.payload.instruction).slice(0, 80)}
                         </p>
