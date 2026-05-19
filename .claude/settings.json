@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dir \"c:\\\\Users\\\\Poly\\\\Documents\\\\Claude\\\\Projects\\\\NEXUS\")"
+      "Bash(dir \"c:\\\\Users\\\\Poly\\\\Documents\\\\Claude\\\\Projects\\\\NEXUS\")",
+      "Bash(vercel ai-gateway *)",
+      "Bash(vercel --scope ezzahcomm-kitabu-yetu ai-gateway api-keys create --name test-key --non-interactive)",
+      "Bash(vercel --scope ezzahcomm-kitabu-yetu ai-gateway api-keys create --name debug-key --debug --non-interactive)",
+      "Bash(mkdir \"c:\\\\Users\\\\Poly\\\\Documents\\\\Claude\\\\Projects\\\\NEXUS\\\\ai-gateway-image\")",
+      "Bash(npm init *)",
+      "Bash(npm install *)",
+      "Bash(npx tsx *)"
     ]
   }
 }
