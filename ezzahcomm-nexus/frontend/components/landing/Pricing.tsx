@@ -62,12 +62,12 @@ export default function Pricing() {
   return (
     <section id="pricing" className="max-w-7xl mx-auto px-6 py-24">
       <div className="text-center mb-16">
-        <p className="text-xs font-semibold tracking-widest text-[#00ff88]/60 uppercase mb-4">Pricing</p>
-        <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4">
+        <p className="text-xs font-semibold tracking-widest text-blue-600/70 uppercase mb-4">Pricing</p>
+        <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">
           Transparent pricing.
-          <span className="text-white/40"> No surprises.</span>
+          <span className="text-slate-400"> No surprises.</span>
         </h2>
-        <p className="text-white/40">14-day free trial on all plans. No credit card required.</p>
+        <p className="text-slate-500">14-day free trial on all plans. No credit card required.</p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
@@ -76,29 +76,31 @@ export default function Pricing() {
             key={name}
             className={`relative rounded-2xl p-8 flex flex-col ${
               featured
-                ? 'bg-gradient-to-b from-[#00ff88]/8 to-[#0066ff]/8 border border-[#00ff88]/30'
-                : 'border border-white/8 bg-white/2'
+                ? 'bg-blue-600 border border-blue-500 shadow-xl shadow-blue-600/20'
+                : 'border border-slate-200 bg-white shadow-sm'
             }`}
           >
             {featured && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="bg-[#00ff88] text-black text-xs font-bold px-3 py-1 rounded-full">Most Popular</span>
+                <span className="bg-white text-blue-700 text-xs font-bold px-3 py-1 rounded-full shadow-sm border border-blue-100">Most Popular</span>
               </div>
             )}
 
             <div className="mb-6">
-              <p className="text-sm text-white/40 mb-1">{name}</p>
+              <p className={`text-sm mb-1 ${featured ? 'text-blue-200' : 'text-slate-500'}`}>{name}</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold text-white">{price}</span>
-                <span className="text-white/30 text-sm">{period}</span>
+                <span className={`text-3xl font-bold ${featured ? 'text-white' : 'text-slate-900'}`}>{price}</span>
+                <span className={`text-sm ${featured ? 'text-blue-200' : 'text-slate-400'}`}>{period}</span>
               </div>
-              <p className="text-sm text-white/40 mt-2 leading-relaxed">{description}</p>
+              <p className={`text-sm mt-2 leading-relaxed ${featured ? 'text-blue-100' : 'text-slate-500'}`}>{description}</p>
             </div>
 
             <ul className="space-y-2.5 mb-8 flex-1">
               {features.map((f) => (
-                <li key={f} className="flex items-center gap-2.5 text-sm text-white/60">
-                  <span className="text-[#00ff88] text-xs">✓</span>
+                <li key={f} className={`flex items-center gap-2.5 text-sm ${featured ? 'text-blue-100' : 'text-slate-600'}`}>
+                  <svg className={`w-4 h-4 flex-shrink-0 ${featured ? 'text-blue-200' : 'text-blue-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
                   {f}
                 </li>
               ))}
@@ -108,8 +110,8 @@ export default function Pricing() {
               href={href}
               className={`text-center py-3 rounded-xl font-semibold text-sm transition-all ${
                 featured
-                  ? 'bg-[#00ff88] text-black hover:bg-[#00e87a]'
-                  : 'border border-white/15 text-white hover:border-white/30'
+                  ? 'bg-white text-blue-700 hover:bg-blue-50'
+                  : 'border border-slate-200 text-slate-700 hover:border-blue-300 hover:text-blue-700 hover:bg-blue-50'
               }`}
             >
               {cta}

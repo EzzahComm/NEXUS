@@ -3,10 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --nexus-green: #00ff88;
-  --nexus-blue: #0066ff;
-  --nexus-surface: #0a0a0a;
-  --nexus-border: rgba(255, 255, 255, 0.08);
+  --bg: #F8FAFC;
+  --surface: #FFFFFF;
+  --primary: #2563EB;
+  --secondary: #4F46E5;
+  --accent: #0EA5E9;
+  --text: #0F172A;
+  --text-muted: #475569;
+  --border: #E2E8F0;
 }
 
 * {
@@ -18,42 +22,31 @@ html {
 }
 
 body {
-  background: var(--nexus-surface);
-}
-
-/* Glow utilities */
-.glow-green {
-  box-shadow: 0 0 40px rgba(0, 255, 136, 0.15);
-}
-
-.glow-blue {
-  box-shadow: 0 0 40px rgba(0, 102, 255, 0.2);
+  background: var(--bg);
+  color: var(--text);
 }
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #00ff88 0%, #0066ff 100%);
+  background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Subtle grid background */
+/* Subtle grid backgrounds */
 .grid-bg {
   background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    linear-gradient(rgba(37, 99, 235, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.04) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 
-/* Animated border */
-@keyframes borderPulse {
-  0%, 100% { border-color: rgba(0, 255, 136, 0.3); }
-  50% { border-color: rgba(0, 102, 255, 0.5); }
-}
-
-.border-animated {
-  animation: borderPulse 3s ease-in-out infinite;
+.grid-bg-dark {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
 }
 
 /* Status dot pulse */

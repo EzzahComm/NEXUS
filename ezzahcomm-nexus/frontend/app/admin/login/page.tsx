@@ -32,7 +32,7 @@ export default async function AdminLoginPage({
   const params = await searchParams;
 
   return (
-    <div className="min-h-screen bg-[#080808] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
 
         {/* Badge */}

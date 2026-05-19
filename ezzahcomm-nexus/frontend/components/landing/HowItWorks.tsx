@@ -17,19 +17,19 @@ const STEPS = [
   {
     step: '04',
     title: 'You review & scale',
-    body: 'Your dashboard shows exactly what\'s running, what\'s been completed, and how performance is trending. Scale agents or add new ones anytime.',
+    body: "Your dashboard shows exactly what's running, what's been completed, and how performance is trending. Scale agents or add new ones anytime.",
   },
 ];
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="bg-[#030303] border-y border-white/8 py-24">
+    <section id="how-it-works" className="bg-slate-50 border-y border-slate-200 py-24">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <p className="text-xs font-semibold tracking-widest text-[#00ff88]/60 uppercase mb-4">How It Works</p>
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4">
+          <p className="text-xs font-semibold tracking-widest text-blue-600/70 uppercase mb-4">How It Works</p>
+          <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">
             Up and running
-            <span className="text-white/40"> in under an hour.</span>
+            <span className="text-slate-400"> in under an hour.</span>
           </h2>
         </div>
 
@@ -37,14 +37,14 @@ export default function HowItWorks() {
           {STEPS.map(({ step, title, body }, i) => (
             <div key={step} className="relative">
               {i < STEPS.length - 1 && (
-                <div className="hidden lg:block absolute top-6 left-full w-full h-px bg-gradient-to-r from-white/10 to-transparent z-0" />
+                <div className="hidden lg:block absolute top-6 left-full w-full h-px bg-gradient-to-r from-slate-300 to-transparent z-0" />
               )}
               <div className="relative z-10">
-                <div className="w-12 h-12 rounded-xl border border-white/10 bg-white/4 flex items-center justify-center mb-5">
-                  <span className="text-xs font-mono text-[#00ff88]">{step}</span>
+                <div className="w-12 h-12 rounded-xl border border-blue-200 bg-blue-50 flex items-center justify-center mb-5">
+                  <span className="text-xs font-mono font-bold text-blue-600">{step}</span>
                 </div>
-                <h3 className="text-white font-semibold mb-2">{title}</h3>
-                <p className="text-sm text-white/40 leading-relaxed">{body}</p>
+                <h3 className="text-slate-900 font-semibold mb-2">{title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{body}</p>
               </div>
             </div>
           ))}

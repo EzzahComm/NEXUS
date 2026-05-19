@@ -11,6 +11,11 @@ const nav = [
     icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
   },
   {
+    label: 'Command Center',
+    href: '/admin/command-center',
+    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" /></svg>,
+  },
+  {
     label: 'Tenants',
     href: '/admin/tenants',
     icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
@@ -50,12 +55,12 @@ const nav = [
 export default function AdminSidebar() {
   const pathname = usePathname();
   return (
-    <aside className="w-60 border-r border-red-500/10 flex flex-col shrink-0 bg-black">
-      <div className="h-16 flex items-center gap-2 px-5 border-b border-red-500/10">
-        <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white font-bold text-sm">A</span>
+    <aside className="w-60 border-r border-slate-200 flex flex-col shrink-0 bg-white">
+      <div className="h-16 flex items-center gap-2 px-5 border-b border-slate-200">
+        <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">A</span>
         <div>
-          <p className="font-semibold text-white text-sm tracking-tight">Admin</p>
-          <p className="text-red-400/60 text-xs">NEXUS Platform</p>
+          <p className="font-semibold text-slate-900 text-sm tracking-tight">Admin</p>
+          <p className="text-slate-400 text-xs">NEXUS Platform</p>
         </div>
       </div>
 
@@ -67,22 +72,22 @@ export default function AdminSidebar() {
               key={href}
               href={href}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                active ? 'bg-red-500/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'
+                active ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
-              <span className={active ? 'text-red-400' : ''}>{icon}</span>
+              <span className={active ? 'text-blue-600' : 'text-slate-400'}>{icon}</span>
               {label}
             </Link>
           );
         })}
       </nav>
 
-      <div className="px-4 py-4 border-t border-red-500/10">
-        <Link href="/dashboard" className="block text-xs text-white/30 hover:text-white/60 transition-colors mb-2 px-1">
+      <div className="px-4 py-4 border-t border-slate-200">
+        <Link href="/dashboard" className="block text-xs text-slate-400 hover:text-slate-600 transition-colors mb-2 px-1">
           ← Back to Dashboard
         </Link>
         <form action={logout}>
-          <button type="submit" className="text-xs text-red-400/40 hover:text-red-400 transition-colors px-1">
+          <button type="submit" className="text-xs text-slate-400 hover:text-red-500 transition-colors px-1">
             Sign out
           </button>
         </form>

@@ -5,7 +5,7 @@ import { useState } from 'react';
 const FAQS = [
   {
     q: 'What makes NEXUS different from other automation tools?',
-    a: 'NEXUS is built natively for African markets — M-Pesa, Kenya SMS providers, East African business workflows. Most tools are US/EU-centric with poor integrations for our region. NEXUS is also fully autonomous: agents don\'t just execute tasks, they coordinate with each other and adapt over time.',
+    a: "NEXUS is built natively for African markets — M-Pesa, Kenya SMS providers, East African business workflows. Most tools are US/EU-centric with poor integrations for our region. NEXUS is also fully autonomous: agents don't just execute tasks, they coordinate with each other and adapt over time.",
   },
   {
     q: 'Do I need a developer to set up NEXUS?',
@@ -35,23 +35,29 @@ export default function FAQ() {
   return (
     <section id="faq" className="max-w-3xl mx-auto px-6 py-24">
       <div className="text-center mb-16">
-        <p className="text-xs font-semibold tracking-widest text-[#00ff88]/60 uppercase mb-4">FAQ</p>
-        <h2 className="text-4xl font-bold text-white">Common questions.</h2>
+        <p className="text-xs font-semibold tracking-widest text-blue-600/70 uppercase mb-4">FAQ</p>
+        <h2 className="text-4xl font-bold text-slate-900">Common questions.</h2>
       </div>
 
       <div className="space-y-2">
         {FAQS.map(({ q, a }, i) => (
-          <div key={q} className="border border-white/8 rounded-xl overflow-hidden bg-white/2">
+          <div key={q} className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
             <button
+              type="button"
               onClick={() => setOpen(open === i ? null : i)}
-              className="w-full text-left px-6 py-5 flex items-center justify-between gap-4"
+              className="w-full text-left px-6 py-5 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors"
             >
-              <span className="text-sm font-medium text-white/80">{q}</span>
-              <span className={`text-white/30 flex-shrink-0 transition-transform ${open === i ? 'rotate-45' : ''}`}>+</span>
+              <span className="text-sm font-medium text-slate-800">{q}</span>
+              <svg
+                className={`w-5 h-5 text-slate-400 flex-shrink-0 transition-transform ${open === i ? 'rotate-180' : ''}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
             {open === i && (
-              <div className="px-6 pb-5">
-                <p className="text-sm text-white/40 leading-relaxed">{a}</p>
+              <div className="px-6 pb-5 border-t border-slate-100">
+                <p className="text-sm text-slate-500 leading-relaxed pt-4">{a}</p>
               </div>
             )}
           </div>

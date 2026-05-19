@@ -22,6 +22,8 @@ import { paymentsRouter } from './routes/payments';
 import { smsRouter } from './routes/sms';
 import { webhooksRouter } from './routes/webhooks';
 import { tenantsRouter } from './routes/tenants';
+import { teamsRouter } from './routes/teams';
+import { eventsRouter } from './routes/events';
 
 const logger = pino({ name: 'nexus:api', level: process.env.LOG_LEVEL || 'info' });
 
@@ -73,6 +75,8 @@ app.use('/api/webhooks', webhooksRouter);   // webhooks before auth (Paystack, D
 app.use('/api', authMiddleware);
 app.use('/api/agents', agentsRouter);
 app.use('/api/tasks', tasksRouter);
+app.use('/api/teams', teamsRouter);
+app.use('/api/events', eventsRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/sms', strictRateLimiter, smsRouter);
 app.use('/api/tenants', tenantsRouter);

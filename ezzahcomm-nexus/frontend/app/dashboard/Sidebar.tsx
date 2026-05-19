@@ -68,15 +68,13 @@ export default function Sidebar({ user }: { user: Record<string, unknown> }) {
   const initials = email ? email.slice(0, 2).toUpperCase() : 'NX';
 
   return (
-    <aside className="w-60 border-r border-white/8 flex flex-col shrink-0">
-      {/* Logo */}
-      <div className="h-16 flex items-center gap-2 px-5 border-b border-white/8">
-        <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#00ff88] to-[#0066ff] flex items-center justify-center text-black font-bold text-sm">N</span>
-        <span className="font-semibold tracking-tight">NEXUS</span>
-        <span className="text-xs text-white/30">by EZZAHCOMM</span>
+    <aside className="w-60 border-r border-slate-200 flex flex-col shrink-0 bg-white">
+      <div className="h-16 flex items-center gap-2 px-5 border-b border-slate-200">
+        <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">N</span>
+        <span className="font-semibold tracking-tight text-slate-900">NEXUS</span>
+        <span className="text-xs text-slate-400">by EZZAHCOMM</span>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5">
         {nav.map(({ label, href, icon }) => {
           const active = pathname === href;
@@ -86,29 +84,28 @@ export default function Sidebar({ user }: { user: Record<string, unknown> }) {
               href={href}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                 active
-                  ? 'bg-white/8 text-white'
-                  : 'text-white/50 hover:text-white hover:bg-white/5'
+                  ? 'bg-blue-50 text-blue-700 font-medium'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
-              <span className={active ? 'text-[#00ff88]' : ''}>{icon}</span>
+              <span className={active ? 'text-blue-600' : 'text-slate-400'}>{icon}</span>
               {label}
             </Link>
           );
         })}
       </nav>
 
-      {/* User + logout */}
-      <div className="px-4 py-4 border-t border-white/8">
+      <div className="px-4 py-4 border-t border-slate-200">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00ff88]/20 to-[#0066ff]/20 border border-white/10 flex items-center justify-center text-xs font-semibold text-white/70">
+          <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-xs font-semibold text-blue-700">
             {initials}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-white/60 truncate">{email}</p>
+            <p className="text-xs text-slate-500 truncate">{email}</p>
           </div>
         </div>
         <form action={logout}>
-          <button type="submit" className="w-full text-left text-xs text-white/30 hover:text-white/60 transition-colors px-1 py-1">
+          <button type="submit" className="w-full text-left text-xs text-slate-400 hover:text-slate-600 transition-colors px-1 py-1">
             Sign out
           </button>
         </form>
