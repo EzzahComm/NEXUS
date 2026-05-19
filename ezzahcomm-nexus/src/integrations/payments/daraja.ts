@@ -57,6 +57,9 @@ export class DarajaService {
     this.supabase = supabase;
     this.env = (process.env.MPESA_ENV as 'production' | 'sandbox') || 'production';
     this.client = axios.create({ baseURL: DARAJA_BASE[this.env] });
+    if (!process.env.MPESA_B2C_SECURITY_CREDENTIAL) {
+      logger.warn('MPESA_B2C_SECURITY_CREDENTIAL is not set — B2C payouts will fail until configured');
+    }
   }
 
   // ── AUTH TOKEN ────────────────────────────────────────────
@@ -82,6 +85,27 @@ export class DarajaService {
   // ── STK PUSH (Lipa Na M-Pesa Online) ─────────────────────
 
   async stkPush(request: STKPushRequest): Promise<STKPushResponse> {
+    // Idempotency guard: block duplicate pending payments for same tenant/phone/amount/account
+    try {
+      const { data: existing } = await this.supabase
+        .from('mobile_money_transactions')
+        .select('id')
+        .eq('tenant_id', request.tenant_id ?? null)
+        .eq('phone', request.phone)
+        .eq('amount', request.amount)
+        .eq('account_reference', request.account_reference)
+        .eq('status', 'pending')
+        .limit(1);
+
+      if (existing && (existing as any[]).length > 0) {
+        logger.warn({ phone: request.phone, amount: request.amount, tenant: request.tenant_id }, 'Duplicate STK Push blocked — pending transaction exists');
+        throw new Error('A payment for this account is already pending. Please wait.');
+      }
+    } catch (err) {
+      // If supabase query fails, log but continue to attempt the push (fail-open is safer here)
+      logger.info({ err }, 'Idempotency guard check failed — proceeding with STK Push');
+    }
+
     const token = await this.getAccessToken();
     const timestamp = this.getTimestamp();
     const password = this.generatePassword(timestamp);

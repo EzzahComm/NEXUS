@@ -24,6 +24,7 @@ import { webhooksRouter } from './routes/webhooks';
 import { tenantsRouter } from './routes/tenants';
 import { teamsRouter } from './routes/teams';
 import { eventsRouter } from './routes/events';
+import startMpesaPollerScheduler from '../cron/scheduler';
 
 const logger = pino({ name: 'nexus:api', level: process.env.LOG_LEVEL || 'info' });
 
@@ -96,6 +97,11 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 if (require.main === module) {
   app.listen(PORT, () => {
     logger.info({ port: PORT }, 'NEXUS API server online');
+    try {
+      startMpesaPollerScheduler();
+    } catch (err) {
+      logger.error({ err }, 'Failed to start MPESA poller scheduler');
+    }
   });
 }
 

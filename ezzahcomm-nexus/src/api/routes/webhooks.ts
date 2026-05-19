@@ -13,12 +13,19 @@ import pino from 'pino';
 export const webhooksRouter = Router();
 const logger = pino({ name: 'nexus:webhooks' });
 
-// Safaricom's published callback IP range
-const DARAJA_ALLOWED_IPS = new Set([
+// Safaricom's published callback IP range (can be overridden with MPESA_ALLOWED_IPS comma-separated)
+const DEFAULT_DARAJA_IPS = [
   '196.201.214.200', '196.201.214.206', '196.201.213.114',
   '196.201.214.207', '196.201.214.208', '196.201.213.100',
   '196.201.214.209', '196.201.214.210',
-]);
+];
+
+const DARAJA_ALLOWED_IPS = new Set(
+  (process.env.MPESA_ALLOWED_IPS || DEFAULT_DARAJA_IPS.join(','))
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean),
+);
 
 function darajaIpGuard(req: Request, res: Response, next: () => void): void {
   if (process.env.NODE_ENV !== 'production') return next();

@@ -7,17 +7,22 @@ import rateLimit from 'express-rate-limit';
 import { RedisStore } from 'rate-limit-redis';
 import Redis from 'ioredis';
 
-let store: RedisStore | undefined;
-
-try {
-  const redis = new Redis(process.env.REDIS_URL!, { lazyConnect: true, enableOfflineQueue: false });
-  // Adapt ioredis to the sendCommand interface expected by rate-limit-redis
-  store = new RedisStore({
-    sendCommand: (...args: string[]) => redis.call(args[0], ...args.slice(1)) as Promise<unknown>,
-  });
-} catch {
-  // Falls back to in-memory store if Redis is unavailable at startup
+function createRedisStore(): RedisStore | undefined {
+  if (!process.env.REDIS_URL) return undefined;
+  try {
+    // enableOfflineQueue true so commands issued before connect are queued
+    const redis = new Redis(process.env.REDIS_URL, { lazyConnect: true, enableOfflineQueue: true });
+    return new RedisStore({
+      sendCommand: (...args: string[]) => (redis.call as any)(args[0], ...args.slice(1)) as Promise<unknown>,
+    });
+  } catch {
+    return undefined;
+  }
 }
+
+// Create separate store instances per limiter to avoid store reuse validation errors
+const storeForGeneral = createRedisStore();
+const storeForStrict = createRedisStore();
 
 // General API: 120 req/min
 export const rateLimiter = rateLimit({
@@ -25,7 +30,7 @@ export const rateLimiter = rateLimit({
   max: 120,
   standardHeaders: true,
   legacyHeaders: false,
-  store,
+  store: storeForGeneral,
   message: { error: 'Too many requests. Please slow down.' },
   skip: (req) => req.path === '/health',
 });
@@ -36,6 +41,6 @@ export const strictRateLimiter = rateLimit({
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  store,
+  store: storeForStrict,
   message: { error: 'Rate limit exceeded for this endpoint.' },
 });

@@ -8,7 +8,17 @@
       "Bash(mkdir \"c:\\\\Users\\\\Poly\\\\Documents\\\\Claude\\\\Projects\\\\NEXUS\\\\ai-gateway-image\")",
       "Bash(npm init *)",
       "Bash(npm install *)",
-      "Bash(npx tsx *)"
+      "Bash(npx tsx *)",
+      "Bash(ls \"C:\\\\Users\\\\Poly\\\\Documents\\\\Claude\\\\Projects\" 2>&1)",
+      "Read(//c/Users/Poly/Documents/Claude/Projects/**)",
+      "mcp__claude_ai_Supabase__get_project",
+      "mcp__claude_ai_Supabase__list_migrations"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\Poly\\Documents\\Claude\\Projects\\KITABU YETU\\kitabuyetu\\lib\\services",
+      "C:\\Users\\Poly\\Documents\\Claude\\Projects\\KITABU YETU\\kitabuyetu\\app\\api\\v1\\welfare",
+      "C:\\Users\\Poly\\Documents\\Claude\\Projects\\KITABU YETU\\kitabuyetu\\app\\api\\v1\\meetings\\[id]\\resolutions",
+      "C:\\Users\\Poly\\Documents\\Claude\\Projects\\KITABU YETU\\kitabuyetu\\hooks"
     ]
   }
 }

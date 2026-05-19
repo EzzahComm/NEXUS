@@ -12,6 +12,7 @@
     "orchestrator": "ts-node src/runtime/orchestrator.ts",
     "worker": "ts-node src/runtime/task-engine.ts",
     "audit": "ts-node src/runtime/audit-engine.ts",
+    "mpesa:poll": "npx ts-node src/cron/mpesa-pending-poller.ts",
     "lint": "eslint src/**/*.ts",
     "test": "jest --coverage",
     "docker:up": "docker compose up -d",

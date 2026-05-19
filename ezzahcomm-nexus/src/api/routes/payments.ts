@@ -41,7 +41,11 @@ paymentsRouter.post('/stk-push', async (req, res) => {
     });
     return res.json({ success: true, data: result });
   } catch (err) {
-    return res.status(502).json({ error: String(err) });
+    const message = String(err);
+    if (message.includes('already pending')) {
+      return res.status(409).json({ error: message });
+    }
+    return res.status(502).json({ error: message });
   }
 });
 
