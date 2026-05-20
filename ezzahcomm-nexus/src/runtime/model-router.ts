@@ -7,6 +7,12 @@
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import pino from 'pino';
+import {
+  sanitizeModelPrompt,
+  sanitizeModelResponse,
+  truncateToContextWindow,
+  convertToolOutputToMarkdown,
+} from './safety-guards';
 
 const logger = pino({ name: 'nexus:model-router' });
 
@@ -187,7 +193,9 @@ export class ModelRouter {
     opts: CallOptions = {}
   ): Promise<string> {
     const decision = this.route(agentType, complexity);
-    return this.call(decision, system, user, opts);
+    const sanitizedUser = sanitizeModelPrompt(user);
+    const truncatedUser = truncateToContextWindow(sanitizedUser, Math.floor(decision.config.contextWindow * 0.8));
+    return this.call(decision, system, truncatedUser, opts);
   }
 
   // ── PROVIDERS ─────────────────────────────────────────────
@@ -206,7 +214,7 @@ export class ModelRouter {
         system: [
           {
             type: 'text',
-            text: system,
+            text: sanitizeModelPrompt(system),
             cache_control: { type: 'ephemeral' },
           },
         ],
@@ -218,7 +226,8 @@ export class ModelRouter {
     ]);
 
     const content = response.content[0];
-    return content.type === 'text' ? content.text : '';
+    const raw = content.type === 'text' ? content.text : convertToolOutputToMarkdown(content);
+    return sanitizeModelResponse(raw);
   }
 
   private async callOpenAI(
@@ -233,7 +242,7 @@ export class ModelRouter {
         model,
         max_tokens: maxTokens,
         messages: [
-          { role: 'system', content: system },
+          { role: 'system', content: sanitizeModelPrompt(system) },
           { role: 'user', content: user },
         ],
       }),
@@ -242,7 +251,8 @@ export class ModelRouter {
       ),
     ]);
 
-    return response.choices[0].message.content ?? '';
+    const rawText = response.choices[0].message.content ?? '';
+    return sanitizeModelResponse(rawText);
   }
 
   // ── HELPERS ───────────────────────────────────────────────

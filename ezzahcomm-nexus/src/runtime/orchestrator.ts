@@ -370,7 +370,10 @@ export class NexusOrchestrator {
     payload: Record<string, unknown>,
     severity: 'info' | 'high' | 'critical' = 'info'
   ): Promise<void> {
-    await this.supabase.from('system_events').insert({ event_type, payload, severity }).catch(() => {});
+    const { error } = await this.supabase.from('system_events').insert({ event_type, payload, severity });
+    if (error) {
+      logger.warn({ err: error }, 'Failed to write system event');
+    }
   }
 
   async shutdown(): Promise<void> {

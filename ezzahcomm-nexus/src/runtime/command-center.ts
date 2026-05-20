@@ -11,6 +11,7 @@ import pino from 'pino';
 import { EventBus } from './event-bus';
 import { TaskGraph } from './task-graph';
 import { ModelRouter } from './model-router';
+import { sanitizeTaskPayload, sanitizeModelResponse } from './safety-guards';
 
 const logger = pino({ name: 'nexus:command-center' });
 
@@ -151,6 +152,7 @@ export class CommandCenter {
   private taskGraph: TaskGraph;
   private modelRouter: ModelRouter;
   private sessions = new Map<string, AgentSession>();
+  private sessionHistory = new Map<string, string[]>();
 
   constructor(
     supabase: SupabaseClient,
@@ -333,25 +335,29 @@ Rules:
       team_id: teamId,
     });
 
+    const sanitizedPayload = sanitizeTaskPayload(payload);
+    const safeUserPrompt = JSON.stringify({
+      context: sanitizedPayload.context ?? {},
+      instructions: sanitizedPayload.instruction ?? 'Analyze and respond with structured JSON output.',
+    });
+
     try {
       const rawOutput = await this.modelRouter.invoke(
         agentType,
         systemPrompt,
-        JSON.stringify({
-          task_id: taskId,
-          team_id: teamId,
-          context: payload,
-          instructions: payload.instruction ?? 'Analyze and respond with structured JSON output.',
-        }),
+        safeUserPrompt,
         'moderate',
         { timeoutMs: 120_000 }
       );
 
+      const sanitizedOutput = sanitizeModelResponse(rawOutput);
+      this.appendSessionTurn(sessionId, safeUserPrompt, sanitizedOutput);
+
       let result: Record<string, unknown>;
       try {
-        result = JSON.parse(rawOutput);
+        result = JSON.parse(sanitizedOutput);
       } catch {
-        result = { raw_response: rawOutput, agent: agentType };
+        result = { raw_response: sanitizedOutput, agent: agentType };
       }
 
       await this.taskGraph.completeTask(taskId, result);
@@ -465,13 +471,16 @@ Rules:
 
     this.sessions.set(sessionId, session);
 
-    await this.supabase.from('agent_sessions').insert({
+    const { error: sessionError } = await this.supabase.from('agent_sessions').insert({
       session_id: sessionId,
       agent_type: agentType,
       team_id: teamId ?? null,
       status: 'active',
       model: routing.model,
-    }).catch(() => {}); // Non-fatal
+    });
+    if (sessionError) {
+      logger.warn({ err: sessionError }, 'Failed to record agent session');
+    }
 
     return sessionId;
   }
@@ -481,15 +490,28 @@ Rules:
     if (s) s.last_heartbeat = new Date().toISOString();
   }
 
+  private appendSessionTurn(sessionId: string, input: string, output: string): void {
+    const history = this.sessionHistory.get(sessionId) ?? [];
+    history.push(`INPUT: ${input} | OUTPUT: ${output}`);
+    while (history.length > 5) history.shift();
+    this.sessionHistory.set(sessionId, history);
+  }
+
+  getSessionHistory(sessionId: string): string[] {
+    return this.sessionHistory.get(sessionId) ?? [];
+  }
+
   async endSession(sessionId: string): Promise<void> {
     const s = this.sessions.get(sessionId);
     if (s) s.status = 'offline';
 
-    await this.supabase
+    const { error: endError } = await this.supabase
       .from('agent_sessions')
       .update({ status: 'offline', ended_at: new Date().toISOString() })
-      .eq('session_id', sessionId)
-      .catch(() => {});
+      .eq('session_id', sessionId);
+    if (endError) {
+      logger.warn({ err: endError }, 'Failed to close agent session');
+    }
   }
 
   getActiveSessions(): AgentSession[] {
@@ -501,11 +523,13 @@ Rules:
   private async onTaskCompleted(taskId: string, teamId?: string): Promise<void> {
     if (!teamId) return;
 
-    await this.supabase
+    const { error: incrementError } = await this.supabase
       .from('agent_teams')
       .update({ completed_tasks: this.supabase.rpc('increment', { x: 1 }) as unknown as number })
-      .eq('id', teamId)
-      .catch(() => {});
+      .eq('id', teamId);
+    if (incrementError) {
+      logger.warn({ err: incrementError, taskId, teamId }, 'Failed to update completed task counter');
+    }
 
     // Re-enqueue any tasks that were blocked on this task
     const ready = await this.taskGraph.getReadyTasks(20);

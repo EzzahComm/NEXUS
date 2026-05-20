@@ -13,7 +13,8 @@ function createRedisStore(): RedisStore | undefined {
     // enableOfflineQueue true so commands issued before connect are queued
     const redis = new Redis(process.env.REDIS_URL, { lazyConnect: true, enableOfflineQueue: true });
     return new RedisStore({
-      sendCommand: (...args: string[]) => (redis.call as any)(args[0], ...args.slice(1)) as Promise<unknown>,
+      sendCommand: (...args: string[]) =>
+        (redis.call as any)(args[0], ...args.slice(1)) as Promise<any>,
     });
   } catch {
     return undefined;
