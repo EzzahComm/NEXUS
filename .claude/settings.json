@@ -18,7 +18,8 @@
       "Bash(mkdir -p \"C:\\\\Users\\\\Poly\\\\Documents\\\\Claude\\\\Projects\\\\KITABU YETU\\\\kitabuyetu\\\\.github\\\\workflows\" 2>&1)",
       "Bash(Get-ChildItem -Path \"app\" -Recurse -Directory)",
       "Bash(xargs grep -l \"super_admin\")",
-      "Bash(xargs grep -l \"admin\\\\|super_admin\")"
+      "Bash(xargs grep -l \"admin\\\\|super_admin\")",
+      "Bash(npm run *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Poly\\Documents\\Claude\\Projects\\KITABU YETU\\kitabuyetu\\lib\\services",
