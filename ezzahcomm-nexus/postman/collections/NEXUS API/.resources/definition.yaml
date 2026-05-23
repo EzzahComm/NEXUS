@@ -1,0 +1,24 @@
+$kind: collection
+name: NEXUS API
+description: |-
+  EZZAHCOMM NEXUS — Complete API collection covering Agents, Tasks, Teams,
+  Events (SSE), Payments (M-Pesa & Paystack), SMS, Tenants, and Webhooks.
+  Base URL: {{baseUrl}}  (default: http://localhost:4000)
+  Auth: Bearer JWT in Authorization header + x-tenant-id header on all protected routes.
+variables:
+  - key: baseUrl
+    value: 'http://localhost:4000'
+  - key: authToken
+    value: ''
+  - key: tenantId
+    value: ''
+  - key: agentId
+    value: ''
+  - key: taskId
+    value: ''
+  - key: teamId
+    value: ''
+  - key: projectId
+    value: ''
+  - key: paymentRef
+    value: ''

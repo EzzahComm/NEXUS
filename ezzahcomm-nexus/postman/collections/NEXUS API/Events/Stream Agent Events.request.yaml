@@ -1,0 +1,27 @@
+$kind: http-request
+name: Stream Agent Events
+method: GET
+url: '{{baseUrl}}/api/events/stream/{{agentId}}'
+description: |-
+  Server-Sent Events (SSE) stream filtered to a specific agent or team channel.
+  Response Content-Type is text/event-stream. Keep connection open.
+  Replace {{agentId}} with the target agent UUID or team ID.
+order: 2000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+  - key: Accept
+    value: text/event-stream
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response time is acceptable", function () {
+        pm.expect(pm.response.responseTime).to.be.below(5000);
+      });

@@ -1,0 +1,43 @@
+$kind: http-request
+name: Paystack Webhook
+method: POST
+url: '{{baseUrl}}/api/webhooks/paystack'
+description: |-
+  Paystack event webhook endpoint. No authentication required.
+  Signature is validated server-side using HMAC-SHA512 with PAYSTACK_SECRET_KEY.
+  The x-paystack-signature header must contain the HMAC-SHA512 hash of the raw request body.
+  Send raw JSON body — do not modify the payload after signing.
+order: 2000
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: x-paystack-signature
+    value: '<hmac-sha512-signature>'
+body:
+  type: json
+  content: |-
+    {
+      "event": "charge.success",
+      "data": {
+        "id": 302961,
+        "reference": "qTPjBCaP2K",
+        "amount": 10000,
+        "currency": "KES",
+        "status": "success",
+        "customer": {
+          "email": "customer@example.com"
+        }
+      }
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response has 'received: true'", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("received", true);
+      });

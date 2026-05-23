@@ -1,0 +1,23 @@
+$kind: http-request
+name: Skill Registry
+method: GET
+url: '{{baseUrl}}/api/teams/registry?role=researcher&tags=nlp'
+description: |-
+  Query the agent skill registry. Filter by role and/or tags to find agents with specific capabilities.
+order: 5000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is valid JSON", function () {
+        pm.response.to.be.json;
+      });

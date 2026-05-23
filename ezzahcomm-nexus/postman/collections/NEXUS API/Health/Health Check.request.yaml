@@ -1,0 +1,31 @@
+$kind: http-request
+name: Health Check
+method: GET
+url: '{{baseUrl}}/health'
+description: |-
+  Public health check endpoint. Returns system status and individual service checks.
+  No authentication required.
+order: 1000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 or 503", function () {
+        pm.expect(pm.response.code).to.be.oneOf([200, 503]);
+      });
+
+      pm.test("Response has 'status' field", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("status");
+        pm.expect(json.status).to.be.oneOf(["healthy", "degraded"]);
+      });
+
+      pm.test("Response has 'checks.api'", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("checks");
+        pm.expect(json.checks).to.have.property("api");
+      });
+
+      pm.test("Response time is less than 2000ms", function () {
+        pm.expect(pm.response.responseTime).to.be.below(2000);
+      });

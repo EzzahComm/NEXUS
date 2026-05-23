@@ -1,0 +1,35 @@
+$kind: http-request
+name: Update My Profile
+method: PUT
+url: '{{baseUrl}}/api/tenants/me'
+description: |-
+  Update the profile and settings of the current tenant. Requires admin or super_admin role.
+order: 2000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "EZZAH COMM",
+      "settings": {
+        "notifications_enabled": true,
+        "default_sender_id": "NEXUS"
+      }
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is valid JSON", function () {
+        pm.response.to.be.json;
+      });

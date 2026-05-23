@@ -1,0 +1,33 @@
+$kind: http-request
+name: Bulk SMS
+method: POST
+url: '{{baseUrl}}/api/sms/bulk'
+description: |-
+  Send an SMS message to multiple recipients in a single request.
+order: 2000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "to": ["254712345678", "254798765432"],
+      "message": "Bulk notification from NEXUS platform.",
+      "sender_id": "NEXUS"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is valid JSON", function () {
+        pm.response.to.be.json;
+      });

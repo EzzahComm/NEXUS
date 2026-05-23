@@ -1,0 +1,46 @@
+$kind: http-request
+name: 'Daraja Callback (M-Pesa)'
+method: POST
+url: '{{baseUrl}}/api/webhooks/daraja'
+description: |-
+  Safaricom M-Pesa STK Push callback endpoint. No authentication required.
+  In production, access is restricted to Safaricom IP ranges only.
+  This endpoint always returns HTTP 200 to acknowledge receipt.
+  Use this request to simulate an M-Pesa callback during local development.
+order: 1000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "Body": {
+        "stkCallback": {
+          "MerchantRequestID": "29115-34620561-1",
+          "CheckoutRequestID": "ws_CO_191220191020363925",
+          "ResultCode": 0,
+          "ResultDesc": "The service request is processed successfully.",
+          "CallbackMetadata": {
+            "Item": [
+              { "Name": "Amount", "Value": 1 },
+              { "Name": "MpesaReceiptNumber", "Value": "NLJ7RT61SV" },
+              { "Name": "TransactionDate", "Value": 20191219102115 },
+              { "Name": "PhoneNumber", "Value": 254708374149 }
+            ]
+          }
+        }
+      }
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Callback ResultCode is 0 (success)", function () {
+        const requestBody = JSON.parse(pm.request.body.raw);
+        pm.expect(requestBody.Body.stkCallback.ResultCode).to.equal(0);
+      });

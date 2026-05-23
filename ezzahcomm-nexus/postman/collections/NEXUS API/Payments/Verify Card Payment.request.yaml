@@ -1,0 +1,24 @@
+$kind: http-request
+name: Verify Card Payment
+method: GET
+url: '{{baseUrl}}/api/payments/card/verify/{{paymentRef}}'
+description: |-
+  Verify the status of a Paystack card payment using the payment reference returned after initialization.
+order: 3000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response has 'status' field", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("status");
+      });

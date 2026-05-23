@@ -1,0 +1,25 @@
+$kind: http-request
+name: SMS Logs
+method: GET
+url: '{{baseUrl}}/api/sms/logs?status=delivered&limit=50'
+description: |-
+  Retrieve SMS delivery logs for the tenant. Filter by delivery status and paginate results.
+order: 5000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response has 'logs' array", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("logs");
+        pm.expect(json.logs).to.be.an("array");
+      });

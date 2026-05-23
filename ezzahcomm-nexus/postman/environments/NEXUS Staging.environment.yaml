@@ -1,0 +1,50 @@
+name: NEXUS Staging
+values:
+  - key: baseUrl
+    value: 'https://api-staging.nexus.ezzahcomm.com'
+    enabled: true
+    type: default
+  - key: authToken
+    value: ''
+    enabled: true
+    type: secret
+  - key: tenantId
+    value: ''
+    enabled: true
+    type: default
+  - key: agentId
+    value: ''
+    enabled: true
+    type: default
+  - key: taskId
+    value: ''
+    enabled: true
+    type: default
+  - key: teamId
+    value: ''
+    enabled: true
+    type: default
+  - key: projectId
+    value: ''
+    enabled: true
+    type: default
+  - key: paymentRef
+    value: ''
+    enabled: true
+    type: default
+  - key: supabaseUrl
+    value: ''
+    enabled: true
+    type: default
+  - key: supabaseAnonKey
+    value: ''
+    enabled: true
+    type: secret
+  - key: mpesaPhone
+    value: '254712345678'
+    enabled: true
+    type: default
+  - key: paystackEmail
+    value: 'staging-test@ezzahcomm.com'
+    enabled: true
+    type: default

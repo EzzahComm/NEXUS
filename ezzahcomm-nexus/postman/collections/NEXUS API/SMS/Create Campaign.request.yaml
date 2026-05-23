@@ -1,0 +1,35 @@
+$kind: http-request
+name: Create Campaign
+method: POST
+url: '{{baseUrl}}/api/sms/campaign'
+description: |-
+  Create a scheduled SMS campaign to be sent to a list of recipients at a specified time.
+order: 3000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Q3 Outreach Campaign",
+      "message": "Special offer for our valued customers. Reply STOP to opt out.",
+      "recipients": ["254712345678", "254798765432"],
+      "scheduled_at": "2026-06-01T09:00:00Z"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 202", function () {
+        pm.response.to.have.status(202);
+      });
+
+      pm.test("Response has 'campaign_id'", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("campaign_id");
+      });

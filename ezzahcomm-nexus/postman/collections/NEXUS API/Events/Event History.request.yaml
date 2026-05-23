@@ -1,0 +1,26 @@
+$kind: http-request
+name: Event History
+method: GET
+url: '{{baseUrl}}/api/events/history?count=50&agent={{agentId}}'
+description: |-
+  Retrieve historical events for the tenant. Filter by agent and limit result count.
+order: 3000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response has 'events' array and 'count'", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("events");
+        pm.expect(json.events).to.be.an("array");
+        pm.expect(json).to.have.property("count");
+      });

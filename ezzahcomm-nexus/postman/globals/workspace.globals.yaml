@@ -1,0 +1,14 @@
+name: Globals
+values:
+  - key: apiVersion
+    value: '2.0.0'
+    enabled: true
+    type: default
+  - key: defaultLimit
+    value: '20'
+    enabled: true
+    type: default
+  - key: defaultOffset
+    value: '0'
+    enabled: true
+    type: default

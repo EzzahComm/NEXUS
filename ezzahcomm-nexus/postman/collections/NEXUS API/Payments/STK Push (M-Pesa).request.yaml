@@ -1,0 +1,38 @@
+$kind: http-request
+name: 'STK Push (M-Pesa)'
+method: POST
+url: '{{baseUrl}}/api/payments/stk-push'
+description: |-
+  Initiate an M-Pesa STK Push (Lipa Na M-Pesa Online) payment request.
+  The customer will receive a prompt on their phone to enter their M-Pesa PIN.
+order: 1000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "phone": "254712345678",
+      "amount": 100,
+      "account_reference": "INV-001",
+      "transaction_desc": "Payment for NEXUS subscription"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 or 202", function () {
+        pm.expect(pm.response.code).to.be.oneOf([200, 202]);
+      });
+
+      pm.test("Response has 'CheckoutRequestID' or 'transaction_id'", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.satisfy(function (body) {
+          return body.hasOwnProperty("CheckoutRequestID") || body.hasOwnProperty("transaction_id");
+        });
+      });

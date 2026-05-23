@@ -1,0 +1,38 @@
+$kind: http-request
+name: 'Init Card Payment (Paystack)'
+method: POST
+url: '{{baseUrl}}/api/payments/card/init'
+description: |-
+  Initialize a Paystack card payment. Returns an authorization URL to redirect the customer to.
+order: 2000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "customer@example.com",
+      "amount": 5000,
+      "currency": "KES",
+      "callback_url": "https://yourapp.com/payment/callback",
+      "metadata": { "order_id": "ORD-001" }
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response has 'authorization_url' or 'data'", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.satisfy(function (body) {
+          return body.hasOwnProperty("authorization_url") || body.hasOwnProperty("data");
+        });
+      });

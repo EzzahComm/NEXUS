@@ -1,0 +1,38 @@
+$kind: http-request
+name: Form Team
+method: POST
+url: '{{baseUrl}}/api/teams'
+description: |-
+  Manually form a team by specifying agents, tasks, and a project objective.
+order: 2000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "objective": "Deploy new microservice",
+      "agents": ["researcher", "coder", "reviewer"],
+      "tasks": [
+        { "type": "research", "payload": {} },
+        { "type": "code", "payload": {} }
+      ],
+      "project_id": "{{projectId}}"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 or 202", function () {
+        pm.expect(pm.response.code).to.be.oneOf([200, 202]);
+      });
+
+      pm.test("Response has 'team_id'", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("team_id");
+      });

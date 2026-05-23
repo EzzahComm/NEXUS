@@ -1,0 +1,36 @@
+$kind: http-request
+name: Orchestrate Team
+method: POST
+url: '{{baseUrl}}/api/teams/orchestrate'
+description: |-
+  Automatically orchestrate a team of agents to achieve a given objective.
+  The system selects and assigns agents based on the objective and mode.
+order: 1000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "objective": "Build a competitive analysis report for the East Africa fintech market",
+      "context": "Focus on mobile money and BNPL segments",
+      "project_id": "{{projectId}}",
+      "mode": "auto"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 or 202", function () {
+        pm.expect(pm.response.code).to.be.oneOf([200, 202]);
+      });
+
+      pm.test("Response has 'team_id'", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("team_id");
+      });

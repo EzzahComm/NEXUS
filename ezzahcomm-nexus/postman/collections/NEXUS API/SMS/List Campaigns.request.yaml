@@ -1,0 +1,25 @@
+$kind: http-request
+name: List Campaigns
+method: GET
+url: '{{baseUrl}}/api/sms/campaigns'
+description: |-
+  Retrieve all SMS campaigns created by the current tenant.
+order: 4000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response has 'campaigns' array", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("campaigns");
+        pm.expect(json.campaigns).to.be.an("array");
+      });

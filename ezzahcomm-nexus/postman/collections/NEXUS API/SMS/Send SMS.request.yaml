@@ -1,0 +1,36 @@
+$kind: http-request
+name: Send SMS
+method: POST
+url: '{{baseUrl}}/api/sms/send'
+description: |-
+  Send a single SMS message to a recipient phone number.
+order: 1000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "to": "254712345678",
+      "message": "Hello from NEXUS! Your request has been processed.",
+      "sender_id": "NEXUS"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response has 'message_id' or 'status'", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.satisfy(function (body) {
+          return body.hasOwnProperty("message_id") || body.hasOwnProperty("status");
+        });
+      });

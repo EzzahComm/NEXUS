@@ -1,0 +1,23 @@
+$kind: http-request
+name: Dissolve Team
+method: DELETE
+url: '{{baseUrl}}/api/teams/{{teamId}}'
+description: |-
+  Dissolve an active team, releasing all assigned agents and closing the session.
+order: 8000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 or 204", function () {
+        pm.expect(pm.response.code).to.be.oneOf([200, 204]);
+      });
+
+      pm.test("Response time is acceptable", function () {
+        pm.expect(pm.response.responseTime).to.be.below(3000);
+      });

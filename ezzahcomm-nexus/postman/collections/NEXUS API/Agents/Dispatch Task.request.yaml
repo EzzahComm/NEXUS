@@ -1,0 +1,35 @@
+$kind: http-request
+name: Dispatch Task
+method: POST
+url: '{{baseUrl}}/api/agents/dispatch'
+description: |-
+  Dispatch a new task to an available agent. Returns the created task ID.
+order: 1000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "type": "research",
+      "project_id": "{{projectId}}",
+      "payload": { "query": "Analyze market trends for Q3" },
+      "priority": 5
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 or 202", function () {
+        pm.expect(pm.response.code).to.be.oneOf([200, 202]);
+      });
+
+      pm.test("Response has 'task_id'", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("task_id");
+      });

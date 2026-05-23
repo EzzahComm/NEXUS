@@ -1,0 +1,23 @@
+$kind: http-request
+name: System Stats
+method: GET
+url: '{{baseUrl}}/api/teams/stats'
+description: |-
+  Retrieve system-wide statistics for teams, agents, and tasks under the current tenant.
+order: 6000
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+  - key: x-tenant-id
+    value: '{{tenantId}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is valid JSON", function () {
+        pm.response.to.be.json;
+      });
